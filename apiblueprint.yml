@@ -1,4 +1,4 @@
-swagger: '2.0'
+swagger: "2.0"
 info:
   description: This is an API documentation for the Secrets App
   version: "1"
@@ -9,327 +9,451 @@ host: virtserver.swaggerhub.com
 # global level of security for whole API
 
 securityDefinitions:
-   APIKeyHeader:
-     type: apiKey
-     in: header
-     name: X-API-Key
-   basicAuth:
-     type: basic
-     
+  APIKeyHeader:
+    type: apiKey
+    in: header
+    name: X-API-Key
+  basicAuth:
+    type: basic
+
 # Global security (applies to all operations):
 security: # APIKeyHeader AND basicAuth
   - APIKeyHeader: []
-    basicAuth: [] 
-    
-  
+    basicAuth: []
+
+# enteties
 tags:
-- name: User
-  description: "Registration"
-- name: Vault
-  description: Create and use vaults 
-- name: Deposit
-  description: upload files to vault
-- name: Login
-  description: user logs in to system
-- name: Secrets
-  description: user in vault session
+  - name: User
+    description: User's registrations
+  - name: Vault
+    description: user's files collection at specific geo-location.
+  - name: Login
+    description: sessions from login to logout of the user in the app.
+  - name: Secrets
+    description: Contents of the vaults. Avaible only at vault's geo-location.
+
 schemes:
- - "https"
+  - "https"
 
 paths:
-
-  /login:
+  /login/me:
     get:
       tags:
         - Login
+      summary: get login form
       produces:
         - "application/json"
       responses:
-         '200':
-           description: login form sent
-         '401':
-           description: you are already logged in 
-         '429':
-           description: stop trying to crash us!
-         '503':
-           description: service currently unavailable
-         default:  
-           description: Something went wrong.
-           
+        "200":
+          description: login form sent
+        "401":
+          description: you are already logged in
+        "429":
+          description: stop trying to crash us!
+        "503":
+          description: service currently unavailable
+        default:
+          description: something went wrong
+  /login/:
     post:
-        tags: 
+      tags:
         - Login
-        summary: send user login details
-        produces:
-          - "application/json"
-        parameters:
-           - in: body
-             name: userDetails
-             description: Starting a login session.
-             schema:
-                $ref: '#/definitions/user'  
-        responses:
-           '201':
-             description: User sucessfully loged in.
-             schema:
-               type: boolean
-               
-           '400':
-             description: Bad request. User ID must be an integer and bigger than 0.
-               Please change your input and try again.
-           '401':
-             description: One ot more of the provided credentials dontmatch. Please change your input and try again. 
-           '429':
-               description: too many requests
-           '503':
-               description: service unavailable
-           
+      summary: send user login details
+      produces:
+        - "application/json"
+      parameters:
+        - in: body
+          name: userDetails
+          description: Starting a login session.
+          schema:
+            $ref: "#/definitions/user"
+      responses:
+        "201":
+          description: User sucessfully loged in.
+          schema:
+            type: boolean
 
+        "400":
+          description:
+            Bad request. User ID must be an integer and bigger than 0.
+            Please change your input and try again.
+        "401":
+          description: One ot more of the provided credentials don't match. Please change your input and try again.
+        "429":
+          description: too many requests
+        "503":
+          description: service unavailable
+  /login/{id}:
+    delete:
+      tags:
+        - Login
+      summary: User logs out
+      parameters:
+        - in: path
+          name: userId
+          type: string
+          required: true
+      responses:
+        "200":
+          description: user logged out
+        "401":
+          description: user is already logged out
+        "404":
+          description: the user doesn't exist
+        "500":
+          description: something went wrong, please try again
+
+  # /users/me ?
   /me:
     patch:
       tags:
         - User
       summary: "edit user"
       produces:
-       - "application/json"
+        - "application/json"
       parameters:
-       - in: path
-         name: userId
-         type: string
-         required: true
-         
+        - in: path
+          name: userId
+          type: string
+          required: true
+
       responses:
-        '200':
+        "200":
           description: user updated
-        '400':
-          description: Bad request. User ID must be an integer and bigger than 0.
-            Please change your input and try again. 
-        '404':
+        "400":
+          description:
+            Bad request. User ID must be an integer and bigger than 0.
+            Please change your input and try again.
+        "404":
           description: no such user
-        '429':
+        "429":
           description: too many requests
-        '503':
-          description: service is currentlly not available 
+        "503":
+          description: service is currentlly not available
 
     delete:
       tags:
-      - User
+        - User
       summary: "delete user"
       parameters:
-       - in: path
-         name: userId
-         type: string
-         required: true
+        - in: path
+          name: userId
+          type: string
+          required: true
       responses:
-        '200':
+        "200":
           description: user deleted
-        '400': 
+        "400":
           description: token invalid
-        '406':
-           description: Not Acceptable  
-        '429':
-           description: too many requests
-        '503':
-           description: service unavailable   
-           
-  /user/{userId}:      
+        "406":
+          description: Not Acceptable
+        "429":
+          description: too many requests
+        "503":
+          description: service unavailable
+
+  /users/{userId}:
     get:
       tags:
         - User
       summary: "Get user by id"
       produces:
-       - "application/json"
+        - "application/json"
       parameters:
-       - in: path
-         name: userId
-         type: string
-         required: true
+        - in: path
+          name: userId
+          type: string
+          required: true
       responses:
-          '200':
-            description: user retrived
-            schema:
-                type: object
-                properties:
-                    username:
-                      type: string
-                      description: The user name.
-          '400':
-            description: Bad request. User ID must be an integer and bigger than 0.
-              Please change your input and try again. 
-          '404':
-            description: users not found - registry is empty.
-             Please change your input and try again. 
-          '429':
-           description: too many requests
-          '503':
-            description: service is currentlly not available 
+        "200":
+          description: user retrived
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                description: The user name.
+        "400":
+          description:
+            Bad request. User ID must be an integer and bigger than 0.
+            Please change your input and try again.
+        "404":
+          description: users not found - registry is empty.
+            Please change your input and try again.
+        "429":
+          description: too many requests
+        "503":
+          description: service is currentlly not available
 
-          
-  /user/new:
+  /users/new:
     get:
       tags:
         - User
       summary: "get registry form"
-      security: []   # No security
+      security: [] # No security
       produces:
         - "application/json"
       responses:
-         '201':
-           description: send registration form
-         '400':
-           description: Bad request. User ID must be an integer   and bigger than 0.
-             Please change your input and try again. 
-         '404':
-           description: user not found. 
-         '406':
-           description: Not Acceptable  
-         default:  
-           description: Something went wrong.
-  /user:         
+        "201":
+          description: the registration form was sent.
+        "400":
+          description: User ID must be an integer and bigger than 0.
+            Please change your input and try again.
+        "404":
+          description: user not found.
+        "406":
+          description: Not Acceptable
+        default:
+          description: Something went wrong.
+  /users:
     post:
-     tags:
-        - User
-     summary: "Create user"
-     security: []   # No security
-     produces:
-      - "application/json"
-     parameters:
-       - in: body
-         name: userDetails
-         description: The user to create.
-         schema:
-            $ref: '#/definitions/user'  
-     responses:
-       '201':
-         description: An user object Created.
-         schema:
-           $ref: '#/definitions/user'
-           # should token returning from server should be described here?
-       '400':
-         description: Bad request. User ID must be an integer and bigger than 0.
-           Please change your input and try again. 
-       '429':
-           description: too many requests
-       '503':
-           description: service unavailable
-
-    
-
-
-  /vault:
-    post:
-     tags:
-        - Vault
-     summary: "Create vault"
-     produces:
-      - "application/json"
-     parameters:
-      - in: body
-        name: body
-        description: Created vault object
-        required: true
-        schema:
-          $ref: '#/definitions/vault'
-         
-     responses:
-          '201':
-            description: A vault object Created.
-            schema:
-              type: object
-              properties:
-                id:
-                  type: string
-                  description: The vault ID.
-                location:
-                  type: object
-                  description: latitude-longitude coordinates
-                owner:
-                  type: string
-                  description: jumbled and uglified username/key
-          '400':
-            description: Bad request. User ID must be an integer and bigger than 0.
-              Please change your input and try again.
-          '406':
-            description: Not Acceptable  
-          default:  
-            description: Something went wrong.
-  
-  /vault:
-    patch:
       tags:
-      - Vault
-      summary: Check if this is my vault. if true, it possible to view files, deposit/withdrowl.
-      parameters:
-       - in: header
-         name: location
-         type: array
-         description: location of the logedin user's vault
-         required: true
+        - User
+      summary: "Create a new user"
+      security: [] # No security
       produces:
-       - boolean
-      description: true/false statment weather the vault is mine or not
-       
+        - "application/json"
+      parameters:
+        - in: body
+          name: userDetails
+          description: The user to create.
+          schema:
+            $ref: "#/definitions/user"
       responses:
-        '200': 
-          description: this is your vault
-        '400':
-          description: one or more parameters is missing. Please enable location access.
-        '401':
-          description: Please register and login.
-        '429':
+        "201":
+          description: An user object Created.
+          schema:
+            $ref: "#/definitions/user"
+            # should token returning from server should be described here?
+        "400":
+          description:
+            Bad request. User ID must be an integer and bigger than 0.
+            Please change your input and try again.
+        "429":
           description: too many requests
-        '503':
-          description: services currently offline            
-    
-    
-  /vault/{vaultId}:        
+        "503":
+          description: service unavailable
+
+  /vaults/:
+    post:
+      tags:
+        - Vault
+      summary: Create vault
+      description: Create a new vault of the logged in user
+      produces:
+        - "application/json"
+      parameters:
+        - in: body
+          name: vault
+          description: New vault details
+          required: true
+          schema:
+            $ref: "#/definitions/vault"
+
+      responses:
+        "201":
+          description: A vault object Created.
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                description: The vault ID.
+              location:
+                type: object
+                description: latitude-longitude coordinates
+              owner:
+                type: string
+                description: jumbled and uglified username/key
+        "400":
+          description:
+            Bad request. User ID must be an integer and bigger than 0.
+            Please change your input and try again.
+        "406":
+          description: Not Acceptable
+        default:
+          description: Something went wrong.
+
+  /vaults/{vaultId}/:
+    get:
+      tags:
+        - Vault
+      summary: Am I in my vault?
+      parameters:
+        - in: header
+          name: location
+          type: array
+          description: location of the logedin user's vault
+          required: true
+      produces:
+        - "application/json"
+
+      description: true/false check weather the vault is mine or not. Tf true, it is possible to view files, deposit/withdrowl
+
+      responses:
+        "200":
+          description: The check was done.
+
+        "400":
+          description: one or more parameters is missing. Please enable location access.
+        "401":
+          description: Please register and login.
+        "429":
+          description: too many requests
+        "503":
+          description: services currently offline
+
     delete:
       tags:
-      - Vault
+        - Vault
       summary: delete vault [and contents?]
       parameters:
         - in: path
           name: vaultId
           type: string
           description: specific vault id
-          required: true 
+          required: true
       responses:
-        '200': 
+        "200":
           description: vault deleted
-        '400':
+        "400":
           description: one or more parameters is missing
-        '401':
+        "401":
           description: you do not have authorization to change this vault
-        '404':
+        "404":
           description: vault not found
-        '429':
+        "429":
           description: too many requests
-        '503':
+        "503":
           description: services currently offline
-          
+
   /vault/new:
     get:
       tags:
         - Vault
-      summary: "create new vault form"
+      summary: get a form to create a new vault
       produces:
         - "application/json"
       responses:
-         '201':
-           description: new vault form was sent
-         '401':
-           description: Unauthorized. Please register and login.
-         '429':
-           description: too many requests
-         '503':
-           description: service unavailable   
-         
-         default:  
-           description: Something went wrong.
+        "201":
+          description: new vault form was sent
+        "401":
+          description: Unauthorized. Please register and login.
+        "429":
+          description: too many requests
+        "503":
+          description: service unavailable
 
+        default:
+          description: Something went wrong.
 
+  /secrets/new:
+    get:
+      tags:
+        - Secret
+      summary: get a form to create a new secret
+      produces:
+        - "application/json"
+      responses:
+        "201":
+          description: new secret form was sent
+        "401":
+          description: Unauthorized. Please login to get access to your Vaults.
+        "403":
+          description: Forbidden. You can not create a new secret cause you are not in your Vault area. files are not acceseble because you are no in a Vault area.
+        "429":
+          description: too many requests
+        "503":
+          description: service unavailable
 
+        default:
+          description: Something went wrong.
 
+  /{vaultId}/secrets/:
+    post:
+      tags:
+        - Secret
+      summary: Deposit a secret
+      description: Create a new file in the vault
+      produces:
+        - "application/json"
+      parameters:
+        - in: body
+          name: secret
+          description: New secret details
+          required: true
+          schema:
+            $ref: "#/definitions/secret"
+
+      responses:
+        "201":
+          description: A secret object Created.
+          schema:
+            $ref: "#/definitions/secret"
+        "400":
+          description: Bad request. Please change your input and try again.
+        "406":
+          description: Not Acceptable
+        default:
+          description: Something went wrong.
+
+    get:
+      tags:
+        - Secret
+      summary: get secrets of the vault
+      parameters:
+        - in: path
+          name: vaultId
+          type: integer
+          description: vaultId
+          required: true
+      produces:
+        - "application/json"
+      description: Get a list of secrets titles in the vault
+
+      responses:
+        "200":
+          description: the secrets of the vault
+        "400":
+          description: the vault id doesn't exist.
+        "401":
+          description: Please enable location access.
+        "429":
+          description: too many requests
+        "503":
+          description: services currently offline
+
+  /{vaultId}/secrets/{secretID}:
+    get:
+      tags:
+        - Secret
+      summary: "Get secret by id"
+      produces:
+        - "application/pfd"
+      parameters:
+        - in: path
+          name: secretId
+          type: string
+          required: true
+      responses:
+        "200":
+          description: a pdf file
+          schema:
+            $ref: "#definitions/secret"
+        "400":
+          description: Bad request.
+            Please change your input and try again.
+        "401":
+          description: The vault is not found.
+        "404":
+          description: the secret was not found.
+            Please change your input and try again.
+        "429":
+          description: too many requests
+        "503":
+          description: service is currentlly not available
+
+  # DELETE /session/vaults/:uid
 
 definitions:
 
@@ -350,10 +474,11 @@ definitions:
         type: string
       password:
         type: string
-        
+
   vault:
     type: object
     required:
+      - id
       - owner
       - location
     properties:
@@ -365,19 +490,24 @@ definitions:
       location:
         type: object
         required:
-          - longditude
+          - longitude
           - latitude
         properties:
-          longditude:
+          longitude:
             type: string
           latitude:
             type: string
   secret:
-   type: object
-   required:
-     - title
-     - content
-        
+    type: object
+    required:
+      - title
+      - content
+    properties:
+      title:
+        type: string
+      content:
+        # should be a file, how will we do it?
+        type: object
 
 # Added by API Auto Mocking Plugin
 # basePath: /startup-booste/vault-test/1
