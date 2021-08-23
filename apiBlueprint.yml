@@ -1,4 +1,4 @@
-swagger: "2.0"
+swagger: "3.0"
 info:
   description: This is an API documentation for the Secrets App
   version: "1"
@@ -31,6 +31,8 @@ tags:
     description: sessions from login to logout of the user in the app.
   - name: Secrets
     description: Contents of the vaults. Avaible only at vault's geo-location.
+  - name: registration
+    description: registration process
 
 schemes:
   - "https"
@@ -70,7 +72,7 @@ paths:
           name: userDetails
           description: The user to create.
           schema:
-            $ref: "#/definitions/user"
+            $ref: "#/components/schemas/UserData"
       responses:
         "201":
           description: An user object Created.
@@ -109,7 +111,7 @@ paths:
     post:
       tags:
         - Login
-      summary: send user login details
+      summary: send user login details and returns token
       produces:
         - "application/json"
       parameters:
@@ -117,7 +119,12 @@ paths:
           name: userDetails
           description: user email and password
           schema:
-            $ref: "#/definitions/user"
+            - email:
+              description: user email
+              $ref: "#/components/schemas/Email"
+            - password:
+              description: user password
+              $ref: "#/components/schemas/Password"
       responses:
         "201":
           description: User sucessfully loged in.
@@ -140,10 +147,12 @@ paths:
         - Login
       summary: User logs out
       parameters:
-        - in: path
-          name: userId
-          type: string
-          required: true
+        - in: body
+          name: userToken
+          # type: object
+          description: unique user identifier
+          schema:
+            $ref: "#/components/schemas/UserToken"
       responses:
         "200":
           description: user logged out
@@ -153,6 +162,7 @@ paths:
           description: the user doesn't exist
         "500":
           description: something went wrong, please try again
+
   # edit and delete
   /me:
     patch:
@@ -165,9 +175,15 @@ paths:
         - in: body
           name: userToken
           # type: object
-          description: userToken
+          description: unique user identifier
           schema:
-            $ref: "#/definitions/user"
+            $ref: "#/components/schemas/UserToken"
+        - in: body
+          name: updateData
+          type: object
+          description: data to be inserted into the user registry
+          schema:
+            $ref: "#/components/schemas/UserData"
 
       responses:
         "200":
@@ -186,10 +202,12 @@ paths:
         - User
       summary: "delete user"
       parameters:
-        - in: path
-          name: userId
-          type: string
-          required: true
+        - in: body
+          name: userToken
+          # type: object
+          description: userToken
+          schema:
+            $ref: "#/components/schemas/UserToken"
       responses:
         "200":
           description: user deleted
@@ -461,8 +479,7 @@ definitions:
   user:
     type: object
     required:
-      - firstName
-      - lastName
+      - username
       - email
       - password
     properties:
@@ -481,7 +498,7 @@ definitions:
     required:
       - name
       - id
-      - owner
+      - username
       - location
     properties:
       name:
@@ -517,3 +534,121 @@ definitions:
 # basePath: /startup-booste/vault-test/1
 # Added by API Auto Mocking Plugin
 basePath: /startup-booste/vault-test/1
+
+components:
+  schemas:
+      Email:
+        type: string
+        format: email
+        example: user@example.com
+
+      Password:
+        type: string
+        format: password
+        example: password123
+
+      UserName:
+        type: string
+        example: JohnCn
+
+      UserID:
+        type: string
+        format: uuid
+        example: "d290f1ee-6c54-4b01-90e6-d701748f0853"
+
+      UserData:
+        type: object
+        properties:
+          email:
+            $ref: "#/components/schemas/Email"
+          password:
+            $ref: "#/components/schemas/Password"
+          id:
+            $ref: "#/components/schemas/UserID"
+          username:
+            $ref: "#/components/schemas/UserName"
+
+      User:
+        allOf:
+          - type: object
+            properties:
+              id:
+                $ref: "#/components/schemas/UserID"
+          - $ref: "#/components/schemas/UserData"
+
+      UserToken:
+        type: object
+        format: JWT Token
+        example: "{eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0b3B0YWwuY29tIiwiZXh
+        wIjoxNDI2NDIwODAwLCJodHRwOi8vdG9wdGFsLmNvbS9qd3RfY2xhaW1zL2lzX2FkbWluIjp0cnVlLCJjb21wYW
+        55IjoiVG9wdGFsIiwiYXdlc29tZSI6dHJ1ZX0.yRQYnWzskCZUxPwaQupWkiUzKELZ49eM7oWxAQK_ZXw}"
+
+      Login:
+        type: object
+        required:
+          - email
+          - password
+        properties:
+          email:
+            $ref: "#/components/schemas/Email"
+          password:
+            $ref: "#/components/schemas/Password"
+
+      VaultName:
+        type: string
+        example: Vaulty McVaultface
+
+      Location:
+        description: "A description of the location(s) to retrieve the exposure for vaults"
+        type: object
+        schema:
+          latitude:
+            type: string
+            $ref: "#/components/schemas/Latitude"
+          longitude:
+            type: string
+            $ref: "#/components/schemas/Longitude"
+
+
+      Latitude:
+        description: "Search coordinates that match or are like 'latitude'"
+        type: string
+        default: ""
+
+      Longitude:
+        description: "Search coordinates that match or are like 'longitude'"
+        type: string
+        default: ""
+
+      Radius:
+        description: radius in meters to search within for vaults point
+          coordinate is provided. Range from 0 to 300
+        type: string
+        default: "300"
+
+
+      VaultData:
+        type: object
+        properties:
+          name:
+            $ref: "#/components/schemas/VaultName"
+          location:
+            $ref: "#/components/schemas/Location"
+          radius:
+            $ref: "#/components/schemas/Radius"
+          id:
+            $ref: "#/components/schemas/VaultID"
+
+
+      VaultID:
+        type: string
+        format: uuid
+        example: 'd290f1ee-6c54-4b01-90e6-d701748f0853'           
+
+      Vault:
+        allOf:
+          - type: object
+            properties: 
+              id: 
+                $ref: '#/components/schemas/VaultID'
+          - $ref: '#/components/schemas/VaultData'        
