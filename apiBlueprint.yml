@@ -36,155 +36,7 @@ schemes:
   - "https"
 
 paths:
-  /login/me:
-    get:
-      tags:
-        - Login
-      summary: get login form
-      produces:
-        - "application/json"
-      responses:
-        "200":
-          description: login form sent
-        "401":
-          description: you are already logged in
-        "429":
-          description: stop trying to crash us!
-        "503":
-          description: service currently unavailable
-        default:
-          description: something went wrong
-  /login/:
-    post:
-      tags:
-        - Login
-      summary: send user login details
-      produces:
-        - "application/json"
-      parameters:
-        - in: body
-          name: userDetails
-          description: Starting a login session.
-          schema:
-            $ref: "#/definitions/user"
-      responses:
-        "201":
-          description: User sucessfully loged in.
-          schema:
-            type: boolean
-
-        "400":
-          description:
-            Bad request. User ID must be an integer and bigger than 0.
-            Please change your input and try again.
-        "401":
-          description: One ot more of the provided credentials don't match. Please change your input and try again.
-        "429":
-          description: too many requests
-        "503":
-          description: service unavailable
-  /login/{id}:
-    delete:
-      tags:
-        - Login
-      summary: User logs out
-      parameters:
-        - in: path
-          name: userId
-          type: string
-          required: true
-      responses:
-        "200":
-          description: user logged out
-        "401":
-          description: user is already logged out
-        "404":
-          description: the user doesn't exist
-        "500":
-          description: something went wrong, please try again
-
-  # /users/me ?
-  /me:
-    patch:
-      tags:
-        - User
-      summary: "edit user"
-      produces:
-        - "application/json"
-      parameters:
-        - in: path
-          name: userId
-          type: string
-          required: true
-
-      responses:
-        "200":
-          description: user updated
-        "400":
-          description:
-            Bad request. User ID must be an integer and bigger than 0.
-            Please change your input and try again.
-        "404":
-          description: no such user
-        "429":
-          description: too many requests
-        "503":
-          description: service is currentlly not available
-
-    delete:
-      tags:
-        - User
-      summary: "delete user"
-      parameters:
-        - in: path
-          name: userId
-          type: string
-          required: true
-      responses:
-        "200":
-          description: user deleted
-        "400":
-          description: token invalid
-        "406":
-          description: Not Acceptable
-        "429":
-          description: too many requests
-        "503":
-          description: service unavailable
-
-  /users/{userId}:
-    get:
-      tags:
-        - User
-      summary: "Get user by id"
-      produces:
-        - "application/json"
-      parameters:
-        - in: path
-          name: userId
-          type: string
-          required: true
-      responses:
-        "200":
-          description: user retrived
-          schema:
-            type: object
-            properties:
-              username:
-                type: string
-                description: The user name.
-        "400":
-          description:
-            Bad request. User ID must be an integer and bigger than 0.
-            Please change your input and try again.
-        "404":
-          description: users not found - registry is empty.
-            Please change your input and try again.
-        "429":
-          description: too many requests
-        "503":
-          description: service is currentlly not available
-
+  # registration
   /users/new:
     get:
       tags:
@@ -234,7 +86,179 @@ paths:
         "503":
           description: service unavailable
 
-  /vaults/:
+  # login
+  /login:
+    get:
+      tags:
+        - Login
+      summary: get login form
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: login form sent
+        "401":
+          description: you are already logged in
+        "429":
+          description: stop trying to crash us!
+        "503":
+          description: service currently unavailable
+        default:
+          description: something went wrong
+
+    post:
+      tags:
+        - Login
+      summary: send user login details
+      produces:
+        - "application/json"
+      parameters:
+        - in: body
+          name: userDetails
+          description: user email and password
+          schema:
+            $ref: "#/definitions/user"
+      responses:
+        "201":
+          description: User sucessfully loged in.
+          schema:
+            type: boolean
+
+        "400":
+          description:
+            Bad request. User ID must be an integer and bigger than 0.
+            Please change your input and try again.
+        "401":
+          description: One ot more of the provided credentials don't match. Please change your input and try again.
+        "429":
+          description: too many requests
+        "503":
+          description: service unavailable
+
+    delete:
+      tags:
+        - Login
+      summary: User logs out
+      parameters:
+        - in: path
+          name: userId
+          type: string
+          required: true
+      responses:
+        "200":
+          description: user logged out
+        "401":
+          description: user is already logged out
+        "404":
+          description: the user doesn't exist
+        "500":
+          description: something went wrong, please try again
+  # edit and delete
+  /me:
+    patch:
+      tags:
+        - User
+      summary: "edit user"
+      produces:
+        - "application/json"
+      parameters:
+        - in: body
+          name: userToken
+          # type: object
+          description: userToken
+          schema:
+            $ref: "#/definitions/user"
+
+      responses:
+        "200":
+          description: user updated
+        "400":
+          description: Bad request. invalid user identifier
+        "404":
+          description: no such user
+        "429":
+          description: too many requests
+        "503":
+          description: service is currentlly not available
+
+    delete:
+      tags:
+        - User
+      summary: "delete user"
+      parameters:
+        - in: path
+          name: userId
+          type: string
+          required: true
+      responses:
+        "200":
+          description: user deleted
+        "400":
+          description: token invalid
+        "406":
+          description: Not Acceptable
+        "429":
+          description: too many requests
+        "503":
+          description: service unavailable
+
+  # for later use############################################
+  /users/{userId}:
+    get:
+      tags:
+        - User
+      summary: "Get user by id"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: userId
+          type: string
+          required: true
+      responses:
+        "200":
+          description: user retrived
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                description: The user name.
+        "400":
+          description:
+            Bad request. User ID must be an integer and bigger than 0.
+            Please change your input and try again.
+        "404":
+          description: users not found - registry is empty.
+            Please change your input and try again.
+        "429":
+          description: too many requests
+        "503":
+          description: service is currentlly not available
+  ##########################################################
+
+  #vaults - creation, validation and deposit-withdrawl
+  /vaults/new:
+    get:
+      tags:
+        - Vault
+      summary: get a form to create a new vault
+      produces:
+        - "application/json"
+      responses:
+        "201":
+          description: new vault form was sent
+        "401":
+          description: Unauthorized. Please register and login.
+        "429":
+          description: too many requests
+        "503":
+          description: service unavailable
+
+        default:
+          description: Something went wrong.
+
+  /vaults:
     post:
       tags:
         - Vault
@@ -274,7 +298,6 @@ paths:
         default:
           description: Something went wrong.
 
-  /vaults/{vaultId}/:
     get:
       tags:
         - Vault
@@ -327,26 +350,6 @@ paths:
         "503":
           description: services currently offline
 
-  /vault/new:
-    get:
-      tags:
-        - Vault
-      summary: get a form to create a new vault
-      produces:
-        - "application/json"
-      responses:
-        "201":
-          description: new vault form was sent
-        "401":
-          description: Unauthorized. Please register and login.
-        "429":
-          description: too many requests
-        "503":
-          description: service unavailable
-
-        default:
-          description: Something went wrong.
-
   /secrets/new:
     get:
       tags:
@@ -369,7 +372,7 @@ paths:
         default:
           description: Something went wrong.
 
-  /{vaultId}/secrets/:
+  /secrets:
     post:
       tags:
         - Secret
@@ -423,36 +426,35 @@ paths:
         "503":
           description: services currently offline
 
-  /{vaultId}/secrets/{secretID}:
-    get:
-      tags:
-        - Secret
-      summary: "Get secret by id"
-      produces:
-        - "application/pfd"
-      parameters:
-        - in: path
-          name: secretId
-          type: string
-          required: true
-      responses:
-        "200":
-          description: a pdf file
-          schema:
-            $ref: "#definitions/secret"
-        "400":
-          description: Bad request.
-            Please change your input and try again.
-        "401":
-          description: The vault is not found.
-        "404":
-          description: the secret was not found.
-            Please change your input and try again.
-        "429":
-          description: too many requests
-        "503":
-          description: service is currentlly not available
-
+  # /{vaultId}/secrets/{secretID}:
+  #   get:
+  #     tags:
+  #       - Secret
+  #     summary: "Get secret by id"
+  #     produces:
+  #       - "application/pfd"
+  #     parameters:
+  #       - in: path
+  #         name: secretId
+  #         type: string
+  #         required: true
+  #     responses:
+  #       "200":
+  #         description: a pdf file
+  #         schema:
+  #           $ref: "#definitions/secret"
+  #       "400":
+  #         description: Bad request.
+  #           Please change your input and try again.
+  #       "401":
+  #         description: The vault is not found.
+  #       "404":
+  #         description: the secret was not found.
+  #           Please change your input and try again.
+  #       "429":
+  #         description: too many requests
+  #       "503":
+  #         description: service is currentlly not available
   # DELETE /session/vaults/:uid
 
 definitions:
@@ -477,10 +479,13 @@ definitions:
   vault:
     type: object
     required:
+      - name
       - id
       - owner
       - location
     properties:
+      name:
+        type: string
       id:
         type: integer
         format: int64
